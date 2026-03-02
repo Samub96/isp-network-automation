@@ -1,0 +1,37 @@
+# Rol de configuración ONT
+---
+- name: Configurar hostname ONT
+  community.routeros.command:
+    commands:
+      - /system identity set name={{ inventory_hostname }}
+
+- name: Crear interfaz para WAN VLAN
+  community.routeros.command:
+    commands:
+      - /interface vlan add name=wan-vlan vlan-id={{ wan_vlan | default(100) }} interface=ether1
+  ignore_errors: yes
+
+- name: Asignar IP a WAN VLAN
+  community.routeros.command:
+    commands:
+      - /ip address add address=192.168.1.{{ groups.ont.index(inventory_hostname) + 1 }}/24 interface=wan-vlan
+  ignore_errors: yes
+
+- name: Configurar management VLAN
+  community.routeros.command:
+    commands:
+      - /interface vlan add name=mgmt-vlan vlan-id={{ management_vlan | default(101) }} interface=ether1
+  ignore_errors: yes
+
+- name: Asignar IP a management VLAN
+  community.routeros.command:
+    commands:
+      - /ip address add address=10.0.0.{{ groups.ont.index(inventory_hostname) + 1 }}/24 interface=mgmt-vlan
+  ignore_errors: yes
+
+- name: Quitar protección de reset en ONT
+  community.routeros.command:
+    commands:
+      - /system reset-on-hold set duration=10s
+  when: allow_reset | default(no)
+  ignore_errors: yes

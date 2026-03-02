@@ -1,0 +1,23 @@
+# Rol de configuración de interfaces
+---
+- name: Configurar hostname
+  community.routeros.command:
+    commands:
+      - /system identity set name={{ inventory_hostname }}
+  when: inventory_hostname is defined
+
+- name: Configurar velocidad y dúplex de interfaces físicas
+  community.routeros.command:
+    commands:
+      - /interface ethernet set {{ item.name }} running=yes
+  loop: "{{ interface_config | default([]) }}"
+  when: interface_config is defined
+  ignore_errors: yes
+
+- name: Asignar IPs a interfaces
+  community.routeros.command:
+    commands:
+      - /ip address add address={{ item.ip }}/{{ item.prefixlen }} interface={{ item.interface }}
+  loop: "{{ ip_addresses | default([]) }}"
+  when: ip_addresses is defined
+  ignore_errors: yes

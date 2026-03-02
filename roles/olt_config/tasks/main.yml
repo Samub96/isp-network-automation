@@ -1,0 +1,26 @@
+# Rol de configuración OLT
+---
+- name: Configurar hostname OLT
+  community.routeros.command:
+    commands:
+      - /system identity set name={{ inventory_hostname }}
+
+- name: Crear perfiles de ONUs
+  community.routeros.command:
+    commands:
+      - /interface onu add parent-interface=pon{{ item.pon | default("0") }} name=onu-{{ item.name | default("residential") }} onu-index={{ item.index | default(1) }}
+  loop: "{{ onu_profiles | default([]) }}"
+  ignore_errors: yes
+
+- name: Habilitar SNMP en OLT
+  community.routeros.command:
+    commands:
+      - /snmp set enabled=yes
+  when: snmp_enabled | default(no)
+  ignore_errors: yes
+
+- name: Configurar sistema OLT
+  community.routeros.command:
+    commands:
+      - /system clock set time-zone-name=UTC
+  ignore_errors: yes

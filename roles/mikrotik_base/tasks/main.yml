@@ -1,0 +1,28 @@
+- name: Configurar hostname
+  community.routeros.command:
+    commands:
+      - /system identity set name={{ inventory_hostname }}
+
+- name: Crear loopback
+  community.routeros.command:
+    commands:
+      - /interface bridge add name=loopback
+  ignore_errors: yes
+
+- name: Asignar IP loopback
+  community.routeros.command:
+    commands:
+      - /ip address add address=10.255.255.{{ ansible_play_hosts.index(inventory_hostname) + 1 }}/32 interface=loopback
+  ignore_errors: yes
+
+- name: Crear instancia OSPF
+  community.routeros.command:
+    commands:
+      - /routing ospf instance add name=default router-id=10.255.255.{{ ansible_play_hosts.index(inventory_hostname) + 1 }}
+  ignore_errors: yes
+
+- name: Agregar red a OSPF
+  community.routeros.command:
+    commands:
+      - /routing ospf area add name=backbone area-id=0.0.0.0
+  ignore_errors: yes

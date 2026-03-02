@@ -1,0 +1,25 @@
+# Variables específicas del host NAT1 (Core)
+---
+ansible_host: 192.168.88.1
+device_name: "MikroTikCCR2116-12G-3"
+
+# IPs asignadas a este host
+ip_addresses:
+  - ip: "10.0.0.1"
+    prefixlen: 30
+    interface: "ether1"
+  - ip: "10.0.0.5"
+    prefixlen: 30
+    interface: "ether2"
+
+# Router ID OSPF
+router_ospf_id: "10.255.255.1"
+
+# Configuración de interfaces
+interface_config:
+  - name: "ether1"
+    mtu: 1500
+    running: yes
+  - name: "ether2"
+    mtu: 1500
+    running: yes

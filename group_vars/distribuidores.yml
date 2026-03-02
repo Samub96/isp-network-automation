@@ -1,0 +1,9 @@
+# Configuración para routers distribuidores
+ospf_enabled: yes
+ospf_area: "0.0.0.1"
+bgp_asn: 65001
+access_vlans:
+  - vlan: 100
+    name: "Servicios"
+  - vlan: 200
+    name: "Datos"

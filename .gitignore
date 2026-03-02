@@ -1,0 +1,18 @@
+# .gitignore - Excluir archivos sensibles
+*.retry
+.vault_pass
+*.vault
+vault_pass.txt
+group_vars/vault.yml
+host_vars/*/secret.yml
+.DS_Store
+*.pyc
+__pycache__/
+.venv/
+venv/
+*.log
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

@@ -1,0 +1,7 @@
+# Configuración OLT (Optical Line Terminal)
+olt_ports: 24
+onu_profiles:
+  - profile: "residential"
+    bandwidth: "100M"
+    qos_priority: 3
+snmp_enabled: yes

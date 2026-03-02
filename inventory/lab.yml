@@ -1,0 +1,30 @@
+all:
+  children:
+    core:
+      hosts:
+        nat1:
+          ansible_host: 192.168.88.1
+          device_name: "MikroTikCCR2116-12G-3"
+    distribuidores:
+      hosts:
+        torre-1:
+          ansible_host: 192.168.88.2
+          device_name: "MikroTikCCR2116-12G-1"
+        torre-2:
+          ansible_host: 192.168.88.3
+          device_name: "MikroTikCCR2116-12G-2"
+    transporte:
+      hosts:
+        transport:
+          ansible_host: 192.168.88.4
+          device_name: "MikroTikCCR2116-12G-4"
+    olt:
+      hosts:
+        olt-simulado:
+          ansible_host: 192.168.88.5
+          device_name: "MikroTikCS328-24P"
+    ont:
+      hosts:
+        ont-simulado:
+          ansible_host: 192.168.88.6
+          device_name: "MikroTikCHR7.1/1"
