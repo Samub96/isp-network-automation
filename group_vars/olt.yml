@@ -1,4 +1,4 @@
-# Configuración OLT (Optical Line Terminal)
+# Configuracion OLT (Optical Line Terminal)
 olt_ports: 24
 onu_profiles:
   - profile: "residential"

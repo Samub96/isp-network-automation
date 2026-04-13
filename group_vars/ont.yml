@@ -1,4 +1,4 @@
-# Configuración ONT (Optical Network Terminal)
+# Configuracion ONT (Optical Network Terminal)
 ont_pon_port: "pon-0/0/0"
 wan_vlan: 100
 management_vlan: 101
