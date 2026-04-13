@@ -1,5 +1,5 @@
-# Configuración para routers distribuidores
-ospf_enabled: yes
+# Configuraciï¿½n para routers distribuidores
+ospf_enabled: no
 ospf_area: "0.0.0.1"
 bgp_asn: 65001
 access_vlans:

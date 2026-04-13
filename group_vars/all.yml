@@ -2,7 +2,7 @@
 # Global Ansible Configuration
 # ========================================
 
-# Credenciales MikroTik (usar ansible-vault en producción)
+# Credenciales MikroTik (usar ansible-vault en producciï¿½n)
 ansible_connection: network_cli
 ansible_network_os: community.routeros.routeros
 ansible_user: admin
@@ -11,14 +11,13 @@ ansible_port: 22
 ansible_command_timeout: 60
 
 # Variables globales de red
-core_subnet: "10.0.0.0/8"
-loopback_subnet: "10.255.255.0/24"
-management_subnet: "192.168.88.0/24"
+core_subnet: "10.10.0.0/16"
+loopback_subnet: "10.10.255.0/24"
+management_subnet: "10.10.0.0/16"
 
-# Configuración NTP (opcional)
+# Configuraciï¿½n NTP (opcional)
 ntp_servers:
-  - "0.pool.ntp.org"
-  - "1.pool.ntp.org"
+  - "10.10.10.9"
 
 # SNMP Configuration
 snmp_community: "public"

@@ -1,9 +1,9 @@
-# Rol de configuración OLT
+# Rol de configuraciï¿½n OLT
 ---
 - name: Configurar hostname OLT
   community.routeros.command:
     commands:
-      - /system identity set name={{ inventory_hostname }}
+      - /system identity set name={{ device_name | default(inventory_hostname) }}
 
 - name: Crear perfiles de ONUs
   community.routeros.command:

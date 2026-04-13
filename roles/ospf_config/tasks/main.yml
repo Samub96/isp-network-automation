@@ -1,4 +1,4 @@
-# Rol de configuración OSPF
+# Rol de configuraciï¿½n OSPF
 ---
 - name: Crear loopback si no existe
   community.routeros.command:
@@ -9,18 +9,18 @@
 - name: Asignar IP a loopback
   community.routeros.command:
     commands:
-      - /ip address add address=10.255.255.{{ groups[group_names[0]].index(inventory_hostname) + 1 }}/32 interface=loopback
+      - /ip address add address={{ loopback_network }}.{{ groups[group_names[0]].index(inventory_hostname) + 1 }}/32 interface=loopback
   ignore_errors: yes
   when: inventory_hostname in groups[group_names[0]]
 
 - name: Habilitar OSPF instance
   community.routeros.command:
     commands:
-      - /routing ospf instance add name=default router-id=10.255.255.{{ groups[group_names[0]].index(inventory_hostname) + 1 }}
+      - /routing ospf instance add name=default router-id={{ ospf_router_id_base }}.{{ groups[group_names[0]].index(inventory_hostname) + 1 }}
   when: ospf_enabled | default(false)
   ignore_errors: yes
 
-- name: Crear área OSPF backbone
+- name: Crear ï¿½rea OSPF backbone
   community.routeros.command:
     commands:
       - /routing ospf area add name=backbone area-id=0.0.0.0

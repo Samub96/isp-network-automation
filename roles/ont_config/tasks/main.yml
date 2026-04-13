@@ -1,9 +1,9 @@
-# Rol de configuración ONT
+# Rol de configuraciï¿½n ONT
 ---
 - name: Configurar hostname ONT
   community.routeros.command:
     commands:
-      - /system identity set name={{ inventory_hostname }}
+      - /system identity set name={{ device_name | default(inventory_hostname) }}
 
 - name: Crear interfaz para WAN VLAN
   community.routeros.command:
@@ -29,7 +29,7 @@
       - /ip address add address=10.0.0.{{ groups.ont.index(inventory_hostname) + 1 }}/24 interface=mgmt-vlan
   ignore_errors: yes
 
-- name: Quitar protección de reset en ONT
+- name: Quitar protecciï¿½n de reset en ONT
   community.routeros.command:
     commands:
       - /system reset-on-hold set duration=10s

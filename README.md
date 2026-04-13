@@ -1,36 +1,37 @@
 # ISP Network Automation - GNS3 Lab
 
-Automatización de configuración para red ISP simulada en GNS3 usando Ansible.
+Automatizaciï¿½n de configuraciï¿½n para red ISP simulada en GNS3 usando Ansible.
 
-##  Topología de Red
+##  Topologï¿½a de Red
 
-```
-         NAT1 (CCR2116-12G-3)
-            |
-    +-------+-------+
-    |               |
- Torre-1       Torre-2
-(CCR2116-12G-1) (CCR2116-12G-2)
-    |               |
-    +-------+-------+
-            |
-       Transport
-    (CCR2116-12G-4)
-            |
-          OLT
-        (CS328-24P)
-            |
-          ONT
-        (CHR7.1/1)
-```
+| ID | Dispositivo | FunciÃ³n / Rol | DirecciÃ³n IP (GestiÃ³n) | Observaciones de ConfiguraciÃ³n |
+| --- | --- | --- | --- | --- |
+| SRV-01 | Radius | AutenticaciÃ³n PPPoE | 10.10.10.2 | Base de datos de usuarios y perfiles. |
+| SRV-02 | Ansible | AutomatizaciÃ³n (Provisionamiento) | 10.10.10.3 | GestiÃ³n de configuraciones mediante Playbooks. |
+| SRV-03 | Zabbix | Observabilidad (Monitoreo) | 10.10.10.4 | Dashboard de estado y alertas SNMP. |
+| SRV-04 | LibreQoS | Calidad de Servicio (Shaping) | 10.10.10.5 | Control de ancho de banda y latencia. |
+| SRV-05a | DHCP | Servicios bÃ¡sicos de red | 10.10.10.6 | Soporte de hosting interno. |
+| SRV-05b | DNS | Servicios bÃ¡sicos de red | 10.10.10.7 | Soporte de resoluciÃ³n interno. |
+| SRV-05c | WEB | Servicios bÃ¡sicos de red | 10.10.10.8 | Soporte de resoluciÃ³n y hosting interno. |
+| SRV-05d | NTP | Servicios bÃ¡sicos de red | 10.10.10.9 | Soporte de sincronizaciÃ³n de hora. |
+| RTR-01 | FW-EDGE-1 | Firewall de Borde | 10.10.30.1 | Seguridad perimetral y salida a Internet (NAT). |
+| RTR-02 | RTR-EDGE-1 | BNG / PPPoE Server | 10.10.20.1 | Concentrador de tÃºneles y ruteo dinÃ¡mico. |
+| RTR-03 | CR-CORE-1 | Core Router Principal | 10.10.20.2 | Nodo OSPF - DistribuciÃ³n de trÃ¡fico. |
+| RTR-04 | CR-CORE-2 | Core Router Secundario | 10.10.20.3 | Redundancia de Core (Malla completa). |
+| SW-01 | SW-SRV-1 | Switch de AgregaciÃ³n | 10.10.10.10 | ConexiÃ³n de granja de servidores (VLAN 10). |
+| OLT-01 | OLT-ACC-1 | Acceso Fibra Ã“ptica | 10.10.40.10 | GestiÃ³n de ONTs (client3 y client4). |
+| RAD-01 | MIMOSA C5x | Backhaul InalÃ¡mbrico | 10.10.40.20 | Enlace punto a punto entre torres. |
+| AP-01 | AP-ACC-1 | Acceso InalÃ¡mbrico | 10.10.40.30 | Sectorial para clientes inalÃ¡mbricos. |
 
-##  Características
+La automatizaciÃ³n de este repositorio se centra en los equipos de red MikroTik; los servicios de la primera fila quedan documentados en inventario para referencia y futuras integraciones.
 
-- **Core Routers**: Configuración con OSPF para enrutamiento dinámico
+##  Caracterï¿½sticas
+
+- **Core Routers**: Configuraciï¿½n con OSPF para enrutamiento dinï¿½mico
 - **Distribuidores**: Soporte para VLANs de servicios
-- **OLT/ONT**: Configuración de terminales ópticas y de usuario
-- **Modular**: Roles específicos para cada tipo de dispositivo
-- **Escalable**: Fácil de añadir nuevos hosts
+- **OLT/ONT**: Configuraciï¿½n de terminales ï¿½pticas y de usuario
+- **Modular**: Roles especï¿½ficos para cada tipo de dispositivo
+- **Escalable**: Fï¿½cil de aï¿½adir nuevos hosts
 
 ##  Estructura del Proyecto
 
@@ -48,10 +49,10 @@ Automatización de configuración para red ISP simulada en GNS3 usando Ansible.
     ont.yml             # Variables ONT
  host_vars/              # (opcional) Variables por host
  roles/
-     interfaces/         # Configuración de interfaces
-     ospf_config/        # Configuración OSPF
-     olt_config/         # Configuración OLT
-     ont_config/         # Configuración ONT
+     interfaces/         # Configuraciï¿½n de interfaces
+     ospf_config/        # Configuraciï¿½n OSPF
+     olt_config/         # Configuraciï¿½n OLT
+     ont_config/         # Configuraciï¿½n ONT
 ```
 
 ##  Uso
@@ -65,8 +66,8 @@ ansible-galaxy collection install community.routeros
 ### 2. Configurar credenciales (IMPORTANTE)
 Edita `group_vars/all.yml` con las credenciales reales:
 ```yaml
-ansible_user: api  # Usar en producción
-ansible_password: tu_contraseña_real
+ansible_user: api  # Usar en producciï¿½n
+ansible_password: tu_contraseï¿½a_real
 ```
 
 ### 3. Ejecutar playbook completo
@@ -74,7 +75,7 @@ ansible_password: tu_contraseña_real
 ansible-playbook -i inventory/lab.yml site.yml
 ```
 
-### 4. Ejecutar para grupo específico
+### 4. Ejecutar para grupo especï¿½fico
 ```bash
 # Solo routers core
 ansible-playbook -i inventory/lab.yml site.yml -l core
@@ -110,7 +111,7 @@ ansible-playbook -i inventory/lab.yml site.yml --ask-vault-pass
 
 ### Core
 - `ospf_enabled`: true
-- `ospf_router_id_base`: "10.255.255"
+- `ospf_router_id_base`: "10.10.255"
 - `bgp_asn`: 65000
 
 ### Distribuidores
@@ -126,7 +127,7 @@ ansible-playbook -i inventory/lab.yml site.yml --ask-vault-pass
 - `wan_vlan`: 100
 - `management_vlan`: 101
 
-##  Comandos útiles
+##  Comandos ï¿½tiles
 
 ```bash
 # Verificar conectividad
@@ -140,14 +141,14 @@ ansible -i inventory/lab.yml all -m community.routeros.command \
   -a "commands=['/system identity print']"
 
 # Ver variables de un host
-ansible -i inventory/lab.yml nat1 -m debug -a "var=hostvars[inventory_hostname]"
+ansible -i inventory/lab.yml fw-edge-1 -m debug -a "var=hostvars[inventory_hostname]"
 ```
 
-##  Próximos pasos de mejora
+##  Prï¿½ximos pasos de mejora
 
 - [ ] BGP para conectividad inter-AS
 - [ ] QoS policies para servicios
-- [ ] Backup automático de configuraciones
+- [ ] Backup automï¿½tico de configuraciones
 - [ ] Monitoreo con Prometheus/Grafana
 - [ ] Failover y redundancia
 - [ ] Templates Jinja2 personalizados
@@ -161,8 +162,8 @@ ansible -i inventory/lab.yml nat1 -m debug -a "var=hostvars[inventory_hostname]"
 
 ##  Notas
 
-- Si MikroTik está en GNS3 localmente, usa `127.0.0.1` con puertos diferentes
-- Asegúrate que los dispositivos tengan IPs en la red de management
+- Si MikroTik estï¿½ en GNS3 localmente, usa `127.0.0.1` con puertos diferentes
+- Asegï¿½rate que los dispositivos tengan IPs en la red de management
 - El usuario debe tener permisos de administrador
 
 ---

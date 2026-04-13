@@ -3,23 +3,23 @@
 # ISP Network Automation - Site Playbook
 # ========================================
 
-# Configuración base para todos los MikroTik
-- name: Configuración base MikroTik
+# Configuraciï¿½n base para equipos de red MikroTik
+- name: Configuraciï¿½n base MikroTik
   hosts: core,distribuidores,transporte
   gather_facts: no
   roles:
     - interfaces
     - ospf_config
 
-# Configuración específica para OLT
-- name: Configuración OLT
+# Configuraciï¿½n especï¿½fica para OLT
+- name: Configuraciï¿½n OLT
   hosts: olt
   gather_facts: no
   roles:
     - olt_config
 
-# Configuración específica para ONT
-- name: Configuración ONT
+# Configuraciï¿½n especï¿½fica para ONT
+- name: Configuraciï¿½n ONT
   hosts: ont
   gather_facts: no
   roles:

@@ -1,5 +1,5 @@
-# Configuración para router de transporte
-ospf_enabled: yes
+# Configuraciï¿½n para router de transporte
+ospf_enabled: no
 ospf_area: "0.0.0.1"
 wan_interface: "ether1"
 lan_interface: "ether2"
