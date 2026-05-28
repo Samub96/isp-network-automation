@@ -1,161 +1,152 @@
 # Deployment Guide
 
-This guide explains how to validate and deploy the ISP automation stack across your GNS3 lab.
+This document is the operational reference for deploying and tuning the ISP automation stack in GNS3 or a similar lab.
 
-## Structure
+## 1. Playbooks
 
-The automation is organized into two playbooks:
+### Infrastructure
 
-### 1. **Infrastructure** (`playbook-infra/`)
-Manages MikroTik devices: routers (core, transport, distributors), OLT/ONT fiber terminals and OSPF routing.
+Scope:
 
-**Hosts:** MikroTik RouterOS devices  
-**Transport:** SSH with `community.routeros` collection  
-**Inventory:** `playbook-infra/inventory/lab.yml`  
-**Run:**
+- RouterOS routers for core, transport and edge roles.
+- OLT and ONT provisioning through the infrastructure roles.
+- SNMP and time synchronization parameters exposed through variables.
+
+Runbook:
+
 ```bash
 cd playbook-infra
-ansible-playbook -i inventory/lab.yml site.yml --syntax-check    # Validate only
-ansible-playbook -i inventory/lab.yml site.yml --check --diff   # Dry-run
-ansible-playbook -i inventory/lab.yml site.yml                  # Deploy
+ansible-playbook -i inventory/lab.yml site.yml --syntax-check
+ansible-playbook -i inventory/lab.yml site.yml --check --diff
+ansible-playbook -i inventory/lab.yml site.yml
 ```
 
-### 2. **Platform Services** (`playbook-platform/`)
-Deploys Ubuntu 24.04 service stack: DHCP (Kea), DNS (Bind9), NTP, FreeRADIUS, Zabbix, and the captive portal web interface.
+### Platform
 
-**Hosts:** Ubuntu Linux servers  
-**Transport:** SSH with sudo  
-**Inventory:** `playbook-platform/inventory/lab.yml`  
-**Run:**
+Scope:
+
+- Kea DHCPv4 for the authoritative client network.
+- Bind9 as recursive resolver and forwarder.
+- NTP for server-side time sync.
+- FreeRADIUS for PPPoE authentication.
+- Zabbix as the monitoring stack.
+- Web portal for landing or captive portal use.
+
+Runbook:
+
 ```bash
 cd playbook-platform
-ansible-playbook -i inventory/lab.yml site.yml --syntax-check   # Validate only
-ansible-playbook -i inventory/lab.yml site.yml --check         # Dry-run
-ansible-playbook -i inventory/lab.yml site.yml                 # Deploy
+ansible-playbook -i inventory/lab.yml site.yml --syntax-check
+ansible-playbook -i inventory/lab.yml site.yml --check
+ansible-playbook -i inventory/lab.yml site.yml
 ```
 
-## Network Context
+## 2. Suggested execution order
 
-```
-Servidores:       10.10.10.0/24     (RADIUS, DNS, Zabbix, DHCP, NTP, Web)
-Core:             10.10.20.0/24     (Routers, OSPF loopbacks)
-Management:       10.10.30.0/24     (Firewall, switches)
-Radius Admin:     10.10.40.0/24     (Mimosa backhaul)
-Clientes PPPoE:   100.64.0.0/18     (CGNAT pool, ~16k addresses)
-```
+1. Validate inventories.
+2. Check syntax on both playbooks.
+3. Apply infrastructure.
+4. Apply platform services.
+5. Verify that NTP, DNS, DHCP, PPPoE and Zabbix are reachable from the network.
 
-## Service Details
-
-| Service | Host | Subnet | Config |
-|---------|------|--------|--------|
-| DHCP (Kea) | dhcp-01 | 10.10.10.6 | `group_vars/all.yml`: `dhcp_subnet_cidr`, `dhcp_range_start`, `dhcp_range_end` |
-| DNS (Bind9) | dns-01 | 10.10.10.7 | `group_vars/all.yml`: `dns_forwarders` |
-| NTP | ntp-01 | 10.10.10.9 | `group_vars/all.yml`: `ntp_servers` (Colombian + fallback) |
-| RADIUS | radius-01 | 10.10.10.2 | `group_vars/all.yml`: `radius_clients` (networks allowed) |
-| Zabbix | zabbix-01 | 10.10.10.4 | Ubuntu 24.04, MariaDB, PHP-FPM via Apache |
-| Web Portal | web-01 | 10.10.10.8 | Captive portal index at `/var/www/html/index.html` |
-
-## Typical Workflow
-
-### Phase 1: Validate without touching devices
 ```bash
-# Test playbook syntax
-cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
-cd playbook-platform && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
-
-# Check inventory loads
 ansible-inventory -i playbook-infra/inventory/lab.yml --graph
 ansible-inventory -i playbook-platform/inventory/lab.yml --graph
 ```
 
-### Phase 2: Check connectivity before deployment
-```bash
-# Ping infrastructure hosts
-ansible -i playbook-infra/inventory/lab.yml all -m ping
+## 3. Network and service map
 
-# Ping platform hosts
-ansible -i playbook-platform/inventory/lab.yml all -m ping
-```
+| Segment | CIDR | Notes |
+|---------|------|-------|
+| Servers | 10.10.10.0/24 | DNS, NTP, DHCP, RADIUS, Zabbix, Web |
+| Core | 10.10.20.0/24 | Routers and loopbacks |
+| Management | 10.10.30.0/24 | Borde, acceso y administracion |
+| Radius Admin | 10.10.40.0/24 | Backhaul and access management |
+| PPPoE clients | 100.64.0.0/18 | Customer address pool |
 
-### Phase 3: Dry-run (check mode)
-```bash
-cd playbook-infra
-ansible-playbook -i inventory/lab.yml site.yml --check --diff
+## 4. Configuration points
 
-cd ../playbook-platform
-ansible-playbook -i inventory/lab.yml site.yml --check
-```
+### Infrastructure variables
 
-### Phase 4: Deploy infrastructure first
-```bash
-cd playbook-infra
-ansible-playbook -i inventory/lab.yml site.yml -v
-```
+Edit [playbook-infra/group_vars/all.yml](playbook-infra/group_vars/all.yml) for global values:
 
-### Phase 5: Deploy platform services
-```bash
-cd playbook-platform
-ansible-playbook -i inventory/lab.yml site.yml -v
-```
+- `ntp_servers`: NTP target for routers, OLT and ONT.
+- `snmp_enabled`: global SNMP toggle.
+- `snmp_version`: version to prefer, normally `2c` while v3 is prepared.
+- `snmp_community`: default SNMP community, currently `monitoring@isp`.
+- `snmp_v3_enabled`: marker for a future migration to SNMPv3.
+- `snmp_v3_user`, `snmp_v3_auth_password`, `snmp_v3_priv_password`: example credentials for v3.
 
-## Prerequisites
+Edit [playbook-infra/group_vars/olt.yml](playbook-infra/group_vars/olt.yml) for OLT specific values:
 
-### For Infrastructure
-```bash
-pip install ansible paramiko
-ansible-galaxy collection install community.routeros
-```
+- `olt_ports`: number of PON or logical ports documented in the lab.
+- `onu_profiles`: list of ONU service profiles.
+- `olt_vendor`: backend hint for the manual, currently documented for ocNOS target usage.
 
-### For Platform
-```bash
-pip install ansible paramiko
-ansible-galaxy collection install ansible.posix
-```
+### Platform variables
 
-## Customization
+Edit [playbook-platform/group_vars/all.yml](playbook-platform/group_vars/all.yml) for service behavior:
 
-### Change NTP Servers
-Edit `playbook-platform/group_vars/all.yml`:
+- `platform_domain`: local DNS domain used by DHCP and service naming.
+- `ntp_servers`: upstream NTP sources for the Linux servers.
+- `dhcp_subnet_cidr`, `dhcp_range_start`, `dhcp_range_end`, `dhcp_router`: Kea authoritative scope.
+- `dhcp_dns_servers`: DNS servers offered to clients.
+- `dns_zone_name` and `dns_local_records`: internal zone for equipment and service names.
+- `dns_forwarders`: external resolvers.
+- `radius_clients`: CIDRs allowed to talk to FreeRADIUS.
+- `radius_secret`: shared secret for RADIUS clients.
+- `pppoe_service_profiles`: intended tiers for 100, 200 and 500 megas.
+- `qos_priority_policies`: future LibreQoS or shaping priority map for games and video.
+- `zabbix_version`, `zabbix_timezone`, `zabbix_db_password`: monitoring stack controls.
+
+## 5. Recommended defaults
+
+### SNMP
+
+Use SNMPv2c as a simple baseline and keep the community in a variable:
+
 ```yaml
-ntp_servers:
-  - 0.co.pool.ntp.org
-  - 1.south-america.pool.ntp.org
-  # Add your custom servers here
+snmp_enabled: true
+snmp_version: "2c"
+snmp_community: "monitoring@isp"
+snmp_v3_enabled: false
+snmp_v3_user: "monitoring"
+snmp_v3_auth_password: "password"
+snmp_v3_priv_password: "password"
 ```
 
-### Change DHCP Range
-Edit `playbook-platform/group_vars/all.yml`:
-```yaml
-dhcp_subnet_cidr: 10.10.30.0/24
-dhcp_range_start: 10.10.30.100
-dhcp_range_end: 10.10.30.200
-dhcp_router: 10.10.30.1
-```
+### DNS forwarders
 
-### Change DNS Forwarders
-Edit `playbook-platform/group_vars/all.yml`:
+Point the resolver to public forwarders that are easy to replace later:
+
 ```yaml
 dns_forwarders:
-  - 1.1.1.1
   - 8.8.8.8
+  - 8.8.4.4
 ```
 
-### Change RADIUS Clients (Allowed Networks)
-Edit `playbook-platform/group_vars/all.yml`:
-```yaml
-radius_clients:
-  - name: core
-    ip: 10.10.20.0/24
-  - name: management
-    ip: 10.10.30.0/24
-  - name: mimosa-admin
-    ip: 10.10.40.0/24
+### PPPoE service tiers
+
+The intended commercial catalog is:
+
+- 100 megas
+- 200 megas
+- 500 megas
+
+Those tiers should later map to RADIUS profiles, shapers or QoS policies.
+
+## 6. Post-deploy checks
+
+```bash
+ansible -i playbook-infra/inventory/lab.yml all -m ping
+ansible -i playbook-platform/inventory/lab.yml all -m ping
+ansible -i playbook-platform/inventory/lab.yml zabbix -m service -a "name=zabbix-server state=started"
 ```
 
-## Next Steps
+## 7. Notes for the future manual
 
-- Add FreeRADIUS user database configuration (`scenarios/radius_users.sql`)
-- Configure Zabbix agents on monitored hosts
-- Customize the captive portal HTML/CSS
-- Set up Zabbix monitoring rules and triggers
-- Document OSPF parameters (area 0, router IDs)
+- Document local DNS records for network equipment and services.
+- Add the exact SNMPv3 flow when the OLT or routers are ready for it.
+- Expand the FreeRADIUS user and profile database.
+- Formalize the LibreQoS policy tree for gaming and video priority.
+- Add Zabbix templates, triggers and discovery rules per vendor.

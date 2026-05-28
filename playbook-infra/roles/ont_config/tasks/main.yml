@@ -35,3 +35,10 @@
       - /system reset-on-hold set duration=10s
   when: allow_reset | default(no)
   ignore_errors: yes
+
+- name: Configurar cliente NTP en ONT
+  community.routeros.command:
+    commands:
+      - /system ntp client set enabled=yes mode=unicast primary-ntp={{ ntp_servers[0] }} secondary-ntp={{ ntp_servers[1] | default(ntp_servers[0]) }}
+  when: ntp_servers is defined and ntp_servers | length > 0
+  ignore_errors: yes

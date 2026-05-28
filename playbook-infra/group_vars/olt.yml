@@ -1,7 +1,8 @@
-# Configuracion OLT (Optical Line Terminal)
+# OLT specific values for the lab.
+olt_vendor: ocnos
 olt_ports: 24
 onu_profiles:
   - profile: "residential"
     bandwidth: "100M"
     qos_priority: 3
-snmp_enabled: yes
+snmp_enabled: true

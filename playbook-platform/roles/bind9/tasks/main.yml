@@ -14,6 +14,20 @@
     mode: "0644"
   notify: Restart bind9
 
+- name: Configure Bind9 local zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Configure Bind9 local zone file
+  ansible.builtin.template:
+    src: db.local.zone.j2
+    dest: "/etc/bind/db.{{ dns_zone_name }}"
+    mode: "0644"
+  notify: Restart bind9
+
 - name: Ensure Bind9 service is enabled
   ansible.builtin.service:
     name: bind9

@@ -1,7 +1,7 @@
 {% for client in radius_clients %}
 client {{ client.name }} {
     ipaddr = {{ client.ip }}
-    secret = radiussecret
+    secret = {{ radius_secret }}
 }
 
 {% endfor %}

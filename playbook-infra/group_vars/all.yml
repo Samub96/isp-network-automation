@@ -1,8 +1,6 @@
-# ========================================
 # Global Ansible Configuration
-# ========================================
 
-# Credenciales MikroTik (usar ansible-vault en producci�n)
+# Connection settings for RouterOS devices.
 ansible_connection: network_cli
 ansible_network_os: community.routeros.routeros
 ansible_user: admin
@@ -10,15 +8,23 @@ ansible_password: admin
 ansible_port: 22
 ansible_command_timeout: 60
 
-# Variables globales de red
+# Network prefixes used across the playbook.
 core_subnet: "10.10.0.0/16"
 loopback_subnet: "10.10.255.0/24"
 management_subnet: "10.10.0.0/16"
 
-# Configuraci�n NTP (opcional)
+# NTP target for infrastructure devices.
 ntp_servers:
   - "10.10.10.9"
 
-# SNMP Configuration
-snmp_community: "public"
+# SNMP defaults. These values are intentionally variable so they can be
+# replaced later without touching the roles or templates.
+snmp_enabled: true
 snmp_version: "2c"
+snmp_community: "monitoring@isp"
+snmp_v3_enabled: false
+snmp_v3_user: "monitoring"
+snmp_v3_auth_password: "password"
+snmp_v3_priv_password: "password"
+snmp_v3_auth_protocol: "sha"
+snmp_v3_priv_protocol: "aes"

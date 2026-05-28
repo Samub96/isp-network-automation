@@ -30,8 +30,35 @@ dns_listen_interfaces:
   - lo
   - eth0
 dns_forwarders:
-  - 1.1.1.1
   - 8.8.8.8
+  - 8.8.4.4
+
+dns_zone_name: lab.local
+dns_local_records:
+  - name: dns-01
+    ip: 10.10.10.7
+  - name: dhcp-01
+    ip: 10.10.10.6
+  - name: ntp-01
+    ip: 10.10.10.9
+  - name: radius-01
+    ip: 10.10.10.2
+  - name: zabbix-01
+    ip: 10.10.10.4
+  - name: web-01
+    ip: 10.10.10.8
+  - name: rtr-edge-1
+    ip: 10.10.20.1
+  - name: cr-core-1
+    ip: 10.10.20.2
+  - name: cr-core-2
+    ip: 10.10.20.3
+  - name: fw-edge-1
+    ip: 10.10.30.1
+  - name: sw-srv-1
+    ip: 10.10.10.10
+  - name: olt-acc-1
+    ip: 10.10.40.10
 
 radius_clients:
   - name: core
@@ -40,6 +67,24 @@ radius_clients:
     ip: 10.10.30.0/24
   - name: mimosa-admin
     ip: 10.10.40.0/24
+
+radius_secret: radiussecret
+
+pppoe_service_profiles:
+  - name: pppoe-100m
+    speed: 100M
+    description: Servicio residencial 100 megas
+  - name: pppoe-200m
+    speed: 200M
+    description: Servicio residencial 200 megas
+  - name: pppoe-500m
+    speed: 500M
+    description: Servicio residencial 500 megas
+
+qos_priority_policies:
+  games: 1
+  video: 2
+  general: 3
 
 zabbix_version: 7.0
 zabbix_timezone: America/Bogota

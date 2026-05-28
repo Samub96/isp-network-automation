@@ -21,3 +21,10 @@
   loop: "{{ ip_addresses | default([]) }}"
   when: ip_addresses is defined
   ignore_errors: yes
+
+- name: Configurar cliente NTP en equipos de red
+  community.routeros.command:
+    commands:
+      - /system ntp client set enabled=yes mode=unicast primary-ntp={{ ntp_servers[0] }} secondary-ntp={{ ntp_servers[1] | default(ntp_servers[0]) }}
+  when: ntp_servers is defined and ntp_servers | length > 0
+  ignore_errors: yes

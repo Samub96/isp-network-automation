@@ -1,0 +1,13 @@
+$TTL 86400
+@   IN  SOA dns-01.{{ dns_zone_name }}. admin.{{ dns_zone_name }}. (
+        2026052701
+        3600
+        1800
+        604800
+        86400 )
+
+    IN  NS  dns-01.{{ dns_zone_name }}.
+
+{% for record in dns_local_records %}
+{{ record.name }}    IN  A   {{ record.ip }}
+{% endfor %}

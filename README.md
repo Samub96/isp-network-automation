@@ -1,119 +1,88 @@
 # ISP Network Automation - GNS3 Lab
 
-Complete infrastructure and services automation for a simulated ISP network using Ansible, MikroTik, and Ubuntu 24.04.
+Repositorio de automatizacion para un laboratorio ISP en GNS3. El objetivo es dejar una base util para provisionar equipos de red y servicios de plataforma con Ansible, usando RouterOS en la capa de routing y un punto de abstraccion para la OLT que permita evolucionar hacia ocNOS sin rehacer la documentacion.
 
-## Structure
+## Alcance
 
-```
-.
-├── README.md                # This file
-├── DEPLOY.md               # Deployment guide and customization reference
-├── playbook-infra/         # MikroTik infrastructure (routers, OLT/ONT)
-│   ├── site.yml
-│   ├── inventory/lab.yml
-│   ├── group_vars/
-│   ├── roles/
-│   │   ├── interfaces/
-│   │   ├── ospf_config/
-│   │   ├── olt_config/
-│   │   └── ont_config/
-│   └── README.md
-└── playbook-platform/      # Ubuntu 24.04 services (DHCP, DNS, NTP, Zabbix, etc.)
-    ├── site.yml
-    ├── inventory/lab.yml
-    ├── group_vars/
-    ├── roles/
-    │   ├── common_linux/
-    │   ├── kea_dhcp/
-    │   ├── bind9/
-    │   ├── ntp/
-    │   ├── freeradius/
-    │   ├── zabbix_server/
-    │   └── web_portal/
-    └── README.md
-```
+Este repo separa dos planos de operacion:
 
-## Quick Validation
+- `playbook-infra/` para equipos de red: routers core, edge, transporte, OLT y ONT.
+- `playbook-platform/` para servicios Linux: DHCP, DNS, NTP, FreeRADIUS, Zabbix y portal web.
 
-Validate both playbooks without applying any changes:
+La idea es que este material sirva como base de un manual operativo, por lo que la configuracion importante esta expuesta como variables y agrupada por dominio de responsabilidad.
+
+## Topologia Logica
+
+| Zona | CIDR | Uso |
+|------|------|-----|
+| Servidores | 10.10.10.0/24 | DHCP, DNS, NTP, RADIUS, Zabbix y web |
+| Core | 10.10.20.0/24 | Routers, loopbacks y BNG/PPPoE |
+| Management | 10.10.30.0/24 | Borde, acceso de administracion y equipos de transporte |
+| Radius Admin | 10.10.40.0/24 | Gestion de backhaul y acceso remoto de equipos |
+| Clientes PPPoE | 100.64.0.0/18 | Pool de clientes / CGNAT |
+
+## Flujo de provisionamiento
+
+1. Se valida primero la sintaxis de ambos playbooks.
+2. Luego se despliegan los equipos de infraestructura.
+3. Finalmente se aplican los servicios de plataforma.
 
 ```bash
-# Validate syntax
 cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
 cd ../playbook-platform && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
-
-# Verify inventory parsing
-ansible-inventory -i playbook-infra/inventory/lab.yml --graph
-ansible-inventory -i playbook-platform/inventory/lab.yml --graph
 ```
 
-## Network Topology
+```bash
+cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml -vv
+cd ../playbook-platform && ansible-playbook -i inventory/lab.yml site.yml -vv
+```
 
-| Zone | CIDR | Usage |
-|------|------|-------|
-| **Servidores** | 10.10.10.0/24 | RADIUS, DNS, Zabbix, DHCP, NTP |
-| **Core** | 10.10.20.0/24 | Routers, OSPF loopbacks |
-| **Management** | 10.10.30.0/24 | Firewall, switches, edge equipment |
-| **Radius Admin** | 10.10.40.0/24 | Mimosa C5x backhaul management |
-| **Clientes PPPoE** | 100.64.0.0/18 | 16,382 IPs for CGNAT pool |
+## Servicios de plataforma
 
-## Deployment Workflow
+| Servicio | Host | Rol |
+|----------|------|-----|
+| DHCP | `dhcp-01` | Kea DHCPv4 autoritativo para la red de servicios |
+| DNS | `dns-01` | Bind9 como resolvedor y forwarder |
+| NTP | `ntp-01` | Servidor de hora para los equipos de red y servidores |
+| FreeRADIUS | `radius-01` | Autenticacion PPPoE |
+| Zabbix | `zabbix-01` | Monitoreo y alertas SNMP |
+| Web | `web-01` | Portal cautivo / landing de acceso |
 
-1. **Validate infrastructure playbook:**
-   ```bash
-   cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
-   ```
+## Variables clave
 
-2. **Validate platform playbook:**
-   ```bash
-   cd playbook-platform && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
-   ```
+Las variables que mas interesan para el manual estan en estos archivos:
 
-3. **Deploy infrastructure (runs in GNS3 against MikroTik device IPs defined in inventory):**
-   ```bash
-   cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml -vv
-   ```
+- [playbook-infra/group_vars/all.yml](playbook-infra/group_vars/all.yml)
+- [playbook-infra/group_vars/olt.yml](playbook-infra/group_vars/olt.yml)
+- [playbook-platform/group_vars/all.yml](playbook-platform/group_vars/all.yml)
 
-4. **Deploy platform services (runs in GNS3 against Ubuntu server IPs defined in inventory):**
-   ```bash
-   cd playbook-platform && ansible-playbook -i inventory/lab.yml site.yml -vv
-   ```
+Resumen de parametros que conviene revisar antes de pasar a produccion o a un entorno mas cercano al real:
 
-See [DEPLOY.md](DEPLOY.md) for detailed deployment guide, customization options, and troubleshooting.
+- SNMP: comunidad, version y credenciales v3 si se habilitan.
+- NTP: lista de servidores a los que deben apuntar routers, OLT y ONT.
+- DNS: forwarders externos y, si se desea, zonas locales para equipos y servicios.
+- FreeRADIUS: secreto compartido y perfiles PPPoE de 100, 200 y 500 megas.
+- DHCP: rango autoritativo, router por defecto y DNS entregado a clientes.
+- Zabbix: version y timezone.
 
-## Service Summary
+## Requisitos
 
-| Service | Container | Version | Config | Port |
-|---------|-----------|---------|--------|------|
-| **DHCP** | kea-01 | Kea 2.x | Kea DHCPv4 | 67/udp |
-| **DNS** | dns-01 | Bind9 | Recursive forwarder | 53/udp |
-| **NTP** | ntp-01 | ntpd | Colombian + global pools | 123/udp |
-| **RADIUS** | radius-01 | FreeRADIUS 3 | PPPoE auth | 1812/udp |
-| **Zabbix** | zabbix-01 | 7.0 + MariaDB | Monitoring | 10051 TCP, 10050 UDP |
-| **Web** | web-01 | Apache2 | Captive portal | 80/tcp |
-
-## Prerequisites
-
-### Ansible Setup
 ```bash
 pip install ansible paramiko
 ansible-galaxy collection install community.routeros ansible.posix
 ```
 
-### GNS3 Lab Requirements
-- MikroTik RouterOS devices with SSH enabled
-- Ubuntu 24.04 (Noble) VMs with SSH and sudo configured
-- Network connectivity between all hosts and your Ansible controller
-- IPs matching those defined in `inventory/lab.yml` files
+- MikroTik RouterOS con SSH habilitado.
+- OLT con el backend definido para el playbook de infraestructura.
+- Ubuntu 24.04 para los servidores de plataforma.
+- Conectividad IP entre el controlador Ansible y todos los hosts.
 
-## Key Files
+## Referencia rapida
 
-- **[playbook-infra/README.md](playbook-infra/README.md)** – Infrastructure deployment details
-- **[playbook-platform/README.md](playbook-platform/README.md)** – Platform services deployment details
-- **[DEPLOY.md](DEPLOY.md)** – Full deployment and customization guide
-- **[playbook-infra/group_vars/all.yml](playbook-infra/group_vars/all.yml)** – Network and infrastructure variables
-- **[playbook-platform/group_vars/all.yml](playbook-platform/group_vars/all.yml)** – Service and platform variables
+- [Guia de despliegue](DEPLOY.md)
+- [Playbook de infraestructura](playbook-infra/README.md)
+- [Playbook de plataforma](playbook-platform/README.md)
 
-## License & Notes
+## Nota
 
-This project automates a complete ISP lab for GNS3. All scripts and configurations are designed for testing and internal lab use only.
+El repo esta pensado como una base de automatizacion evolutiva: hoy documenta y provisiona el lab, y mas adelante puede ampliarse con plantillas, validaciones, roles adicionales y un manual de operacion completo.
