@@ -1,0 +1,21 @@
+---
+- name: Install FreeRADIUS
+  ansible.builtin.apt:
+    name:
+      - freeradius
+      - freeradius-utils
+    state: present
+    update_cache: true
+
+- name: Configure RADIUS clients
+  ansible.builtin.template:
+    src: clients.conf.j2
+    dest: /etc/freeradius/3.0/clients.conf
+    mode: "0644"
+  notify: Restart freeradius
+
+- name: Ensure FreeRADIUS service is enabled
+  ansible.builtin.service:
+    name: freeradius
+    state: started
+    enabled: true

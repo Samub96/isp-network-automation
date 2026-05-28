@@ -1,0 +1,21 @@
+---
+- name: Install Bind9
+  ansible.builtin.apt:
+    name:
+      - bind9
+      - bind9-utils
+    state: present
+    update_cache: true
+
+- name: Configure Bind9 options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Ensure Bind9 service is enabled
+  ansible.builtin.service:
+    name: bind9
+    state: started
+    enabled: true

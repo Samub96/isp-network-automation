@@ -1,0 +1,42 @@
+---
+- name: Download Zabbix repository package
+  ansible.builtin.get_url:
+    url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu24.04_all.deb"
+    dest: /tmp/zabbix-release.deb
+    mode: "0644"
+
+- name: Install Zabbix repository package
+  ansible.builtin.apt:
+    deb: /tmp/zabbix-release.deb
+
+- name: Install Zabbix server stack
+  ansible.builtin.apt:
+    name:
+      - zabbix-server-mysql
+      - zabbix-frontend-php
+      - zabbix-apache-conf
+      - zabbix-sql-scripts
+      - zabbix-agent2
+      - mariadb-server
+      - php-mysql
+    state: present
+    update_cache: true
+
+- name: Set Zabbix timezone in Apache PHP config
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/apache.conf
+    regexp: '^\s*php_value date.timezone'
+    line: '        php_value date.timezone {{ zabbix_timezone }}'
+  notify: Restart apache2
+
+- name: Ensure Zabbix services are enabled
+  ansible.builtin.service:
+    name: zabbix-server
+    state: started
+    enabled: true
+
+- name: Ensure Zabbix agent is enabled
+  ansible.builtin.service:
+    name: zabbix-agent2
+    state: started
+    enabled: true

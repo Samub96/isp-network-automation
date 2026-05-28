@@ -1,0 +1,20 @@
+---
+- name: Install NTP daemon
+  ansible.builtin.apt:
+    name:
+      - ntp
+    state: present
+    update_cache: true
+
+- name: Configure NTP servers
+  ansible.builtin.template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+    mode: "0644"
+  notify: Restart ntp
+
+- name: Ensure NTP service is enabled
+  ansible.builtin.service:
+    name: ntp
+    state: started
+    enabled: true

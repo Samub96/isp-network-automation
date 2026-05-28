@@ -1,0 +1,20 @@
+---
+- name: Install web stack
+  ansible.builtin.apt:
+    name:
+      - apache2
+    state: present
+    update_cache: true
+
+- name: Deploy captive portal index
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: "0644"
+  notify: Restart apache2
+
+- name: Ensure Apache is enabled
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: true

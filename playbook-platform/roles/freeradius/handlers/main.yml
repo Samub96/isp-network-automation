@@ -1,0 +1,5 @@
+---
+- name: Restart freeradius
+  ansible.builtin.service:
+    name: freeradius
+    state: restarted

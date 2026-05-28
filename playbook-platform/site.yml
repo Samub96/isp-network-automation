@@ -1,0 +1,42 @@
+---
+- name: Base platform setup
+  hosts: services
+  gather_facts: true
+  roles:
+    - common_linux
+
+- name: Configure DHCP service
+  hosts: dhcp
+  gather_facts: true
+  roles:
+    - kea_dhcp
+
+- name: Configure DNS service
+  hosts: dns
+  gather_facts: true
+  roles:
+    - bind9
+
+- name: Configure NTP service
+  hosts: ntp
+  gather_facts: true
+  roles:
+    - ntp
+
+- name: Configure FreeRADIUS service
+  hosts: radius
+  gather_facts: true
+  roles:
+    - freeradius
+
+- name: Configure Zabbix server
+  hosts: zabbix
+  gather_facts: true
+  roles:
+    - zabbix_server
+
+- name: Configure web portal
+  hosts: web
+  gather_facts: true
+  roles:
+    - web_portal

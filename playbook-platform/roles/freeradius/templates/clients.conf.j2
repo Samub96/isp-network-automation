@@ -1,0 +1,7 @@
+{% for client in radius_clients %}
+client {{ client.name }} {
+    ipaddr = {{ client.ip }}
+    secret = radiussecret
+}
+
+{% endfor %}

@@ -1,170 +1,119 @@
 # ISP Network Automation - GNS3 Lab
 
-Automatizaci�n de configuraci�n para red ISP simulada en GNS3 usando Ansible.
+Complete infrastructure and services automation for a simulated ISP network using Ansible, MikroTik, and Ubuntu 24.04.
 
-##  Topolog�a de Red
-
-| ID | Dispositivo | Función / Rol | Dirección IP (Gestión) | Observaciones de Configuración |
-| --- | --- | --- | --- | --- |
-| SRV-01 | Radius | Autenticación PPPoE | 10.10.10.2 | Base de datos de usuarios y perfiles. |
-| SRV-02 | Ansible | Automatización (Provisionamiento) | 10.10.10.3 | Gestión de configuraciones mediante Playbooks. |
-| SRV-03 | Zabbix | Observabilidad (Monitoreo) | 10.10.10.4 | Dashboard de estado y alertas SNMP. |
-| SRV-04 | LibreQoS | Calidad de Servicio (Shaping) | 10.10.10.5 | Control de ancho de banda y latencia. |
-| SRV-05a | DHCP | Servicios básicos de red | 10.10.10.6 | Soporte de hosting interno. |
-| SRV-05b | DNS | Servicios básicos de red | 10.10.10.7 | Soporte de resolución interno. |
-| SRV-05c | WEB | Servicios básicos de red | 10.10.10.8 | Soporte de resolución y hosting interno. |
-| SRV-05d | NTP | Servicios básicos de red | 10.10.10.9 | Soporte de sincronización de hora. |
-| RTR-01 | FW-EDGE-1 | Firewall de Borde | 10.10.30.1 | Seguridad perimetral y salida a Internet (NAT). |
-| RTR-02 | RTR-EDGE-1 | BNG / PPPoE Server | 10.10.20.1 | Concentrador de túneles y ruteo dinámico. |
-| RTR-03 | CR-CORE-1 | Core Router Principal | 10.10.20.2 | Nodo OSPF - Distribución de tráfico. |
-| RTR-04 | CR-CORE-2 | Core Router Secundario | 10.10.20.3 | Redundancia de Core (Malla completa). |
-| SW-01 | SW-SRV-1 | Switch de Agregación | 10.10.10.10 | Conexión de granja de servidores (VLAN 10). |
-| OLT-01 | OLT-ACC-1 | Acceso Fibra Óptica | 10.10.40.10 | Gestión de ONTs (client3 y client4). |
-| RAD-01 | MIMOSA C5x | Backhaul Inalámbrico | 10.10.40.20 | Enlace punto a punto entre torres. |
-| AP-01 | AP-ACC-1 | Acceso Inalámbrico | 10.10.40.30 | Sectorial para clientes inalámbricos. |
-
-La automatización de este repositorio se centra en los equipos de red MikroTik; los servicios de la primera fila quedan documentados en inventario para referencia y futuras integraciones.
-
-##  Caracter�sticas
-
-- **Core Routers**: Configuraci�n con OSPF para enrutamiento din�mico
-- **Distribuidores**: Soporte para VLANs de servicios
-- **OLT/ONT**: Configuraci�n de terminales �pticas y de usuario
-- **Modular**: Roles espec�ficos para cada tipo de dispositivo
-- **Escalable**: F�cil de a�adir nuevos hosts
-
-##  Estructura del Proyecto
+## Structure
 
 ```
 .
- site.yml                 # Playbook principal
- inventory/
-    lab.yml             # Inventario de hosts
- group_vars/
-    all.yml             # Variables globales
-    core.yml            # Variables routers core
-    distribuidores.yml  # Variables distribuidores
-    transporte.yml      # Variables transporte
-    olt.yml             # Variables OLT
-    ont.yml             # Variables ONT
- host_vars/              # (opcional) Variables por host
- roles/
-     interfaces/         # Configuraci�n de interfaces
-     ospf_config/        # Configuraci�n OSPF
-     olt_config/         # Configuraci�n OLT
-     ont_config/         # Configuraci�n ONT
+├── README.md                # This file
+├── DEPLOY.md               # Deployment guide and customization reference
+├── playbook-infra/         # MikroTik infrastructure (routers, OLT/ONT)
+│   ├── site.yml
+│   ├── inventory/lab.yml
+│   ├── group_vars/
+│   ├── roles/
+│   │   ├── interfaces/
+│   │   ├── ospf_config/
+│   │   ├── olt_config/
+│   │   └── ont_config/
+│   └── README.md
+└── playbook-platform/      # Ubuntu 24.04 services (DHCP, DNS, NTP, Zabbix, etc.)
+    ├── site.yml
+    ├── inventory/lab.yml
+    ├── group_vars/
+    ├── roles/
+    │   ├── common_linux/
+    │   ├── kea_dhcp/
+    │   ├── bind9/
+    │   ├── ntp/
+    │   ├── freeradius/
+    │   ├── zabbix_server/
+    │   └── web_portal/
+    └── README.md
 ```
 
-##  Uso
+## Quick Validation
 
-### 1. Instalar dependencias
+Validate both playbooks without applying any changes:
+
+```bash
+# Validate syntax
+cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
+cd ../playbook-platform && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
+
+# Verify inventory parsing
+ansible-inventory -i playbook-infra/inventory/lab.yml --graph
+ansible-inventory -i playbook-platform/inventory/lab.yml --graph
+```
+
+## Network Topology
+
+| Zone | CIDR | Usage |
+|------|------|-------|
+| **Servidores** | 10.10.10.0/24 | RADIUS, DNS, Zabbix, DHCP, NTP |
+| **Core** | 10.10.20.0/24 | Routers, OSPF loopbacks |
+| **Management** | 10.10.30.0/24 | Firewall, switches, edge equipment |
+| **Radius Admin** | 10.10.40.0/24 | Mimosa C5x backhaul management |
+| **Clientes PPPoE** | 100.64.0.0/18 | 16,382 IPs for CGNAT pool |
+
+## Deployment Workflow
+
+1. **Validate infrastructure playbook:**
+   ```bash
+   cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
+   ```
+
+2. **Validate platform playbook:**
+   ```bash
+   cd playbook-platform && ansible-playbook -i inventory/lab.yml site.yml --syntax-check
+   ```
+
+3. **Deploy infrastructure (runs in GNS3 against MikroTik device IPs defined in inventory):**
+   ```bash
+   cd playbook-infra && ansible-playbook -i inventory/lab.yml site.yml -vv
+   ```
+
+4. **Deploy platform services (runs in GNS3 against Ubuntu server IPs defined in inventory):**
+   ```bash
+   cd playbook-platform && ansible-playbook -i inventory/lab.yml site.yml -vv
+   ```
+
+See [DEPLOY.md](DEPLOY.md) for detailed deployment guide, customization options, and troubleshooting.
+
+## Service Summary
+
+| Service | Container | Version | Config | Port |
+|---------|-----------|---------|--------|------|
+| **DHCP** | kea-01 | Kea 2.x | Kea DHCPv4 | 67/udp |
+| **DNS** | dns-01 | Bind9 | Recursive forwarder | 53/udp |
+| **NTP** | ntp-01 | ntpd | Colombian + global pools | 123/udp |
+| **RADIUS** | radius-01 | FreeRADIUS 3 | PPPoE auth | 1812/udp |
+| **Zabbix** | zabbix-01 | 7.0 + MariaDB | Monitoring | 10051 TCP, 10050 UDP |
+| **Web** | web-01 | Apache2 | Captive portal | 80/tcp |
+
+## Prerequisites
+
+### Ansible Setup
 ```bash
 pip install ansible paramiko
-ansible-galaxy collection install community.routeros
+ansible-galaxy collection install community.routeros ansible.posix
 ```
 
-### 2. Configurar credenciales (IMPORTANTE)
-Edita `group_vars/all.yml` con las credenciales reales:
-```yaml
-ansible_user: api  # Usar en producci�n
-ansible_password: tu_contrase�a_real
-```
+### GNS3 Lab Requirements
+- MikroTik RouterOS devices with SSH enabled
+- Ubuntu 24.04 (Noble) VMs with SSH and sudo configured
+- Network connectivity between all hosts and your Ansible controller
+- IPs matching those defined in `inventory/lab.yml` files
 
-### 3. Ejecutar playbook completo
-```bash
-ansible-playbook -i inventory/lab.yml site.yml
-```
+## Key Files
 
-### 4. Ejecutar para grupo espec�fico
-```bash
-# Solo routers core
-ansible-playbook -i inventory/lab.yml site.yml -l core
+- **[playbook-infra/README.md](playbook-infra/README.md)** – Infrastructure deployment details
+- **[playbook-platform/README.md](playbook-platform/README.md)** – Platform services deployment details
+- **[DEPLOY.md](DEPLOY.md)** – Full deployment and customization guide
+- **[playbook-infra/group_vars/all.yml](playbook-infra/group_vars/all.yml)** – Network and infrastructure variables
+- **[playbook-platform/group_vars/all.yml](playbook-platform/group_vars/all.yml)** – Service and platform variables
 
-# Solo OLT
-ansible-playbook -i inventory/lab.yml site.yml -l olt
-```
+## License & Notes
 
-### 5. Modo seco (verificar sin aplicar)
-```bash
-ansible-playbook -i inventory/lab.yml site.yml --check
-```
-
-##  Seguridad - Usar Vault
-
-Para no guardar credenciales en texto plano:
-
-```bash
-# Crear archivo encriptado
-ansible-vault create group_vars/vault.yml
-
-# Editar archivo encriptado
-ansible-vault edit group_vars/vault.yml
-
-# Exportar variables desde vault en all.yml
-# include_vars: "{{ playbook_dir }}/group_vars/vault.yml"
-
-# Ejecutar con vault
-ansible-playbook -i inventory/lab.yml site.yml --ask-vault-pass
-```
-
-##  Variables Principales
-
-### Core
-- `ospf_enabled`: true
-- `ospf_router_id_base`: "10.10.255"
-- `bgp_asn`: 65000
-
-### Distribuidores
-- `ospf_area`: "0.0.0.1"
-- `bgp_asn`: 65001
-- `access_vlans`: Lista de VLANs
-
-### OLT
-- `olt_ports`: 24
-- `onu_profiles`: Perfiles de ONUs
-
-### ONT
-- `wan_vlan`: 100
-- `management_vlan`: 101
-
-##  Comandos �tiles
-
-```bash
-# Verificar conectividad
-ansible -i inventory/lab.yml all -m ping
-
-# Listar hosts
-ansible-inventory -i inventory/lab.yml --list
-
-# Ejecutar comando ad-hoc
-ansible -i inventory/lab.yml all -m community.routeros.command \
-  -a "commands=['/system identity print']"
-
-# Ver variables de un host
-ansible -i inventory/lab.yml fw-edge-1 -m debug -a "var=hostvars[inventory_hostname]"
-```
-
-##  Pr�ximos pasos de mejora
-
-- [ ] BGP para conectividad inter-AS
-- [ ] QoS policies para servicios
-- [ ] Backup autom�tico de configuraciones
-- [ ] Monitoreo con Prometheus/Grafana
-- [ ] Failover y redundancia
-- [ ] Templates Jinja2 personalizados
-
-##  Requisitos
-
-- GNS3 con laboratorio configurado
-- Ansible 2.9+
-- Collection: `community.routeros`
-- MikroTik con SSH habilitado
-
-##  Notas
-
-- Si MikroTik est� en GNS3 localmente, usa `127.0.0.1` con puertos diferentes
-- Aseg�rate que los dispositivos tengan IPs en la red de management
-- El usuario debe tener permisos de administrador
-
----
-Last Updated: 2026-03-02
+This project automates a complete ISP lab for GNS3. All scripts and configurations are designed for testing and internal lab use only.

@@ -1,0 +1,40 @@
+all:
+  children:
+    services:
+      children:
+        dhcp:
+          hosts:
+            dhcp-01:
+              ansible_host: 10.10.10.6
+              service_role: dhcp
+              device_name: DHCP-01
+        dns:
+          hosts:
+            dns-01:
+              ansible_host: 10.10.10.7
+              service_role: dns
+              device_name: DNS-01
+        ntp:
+          hosts:
+            ntp-01:
+              ansible_host: 10.10.10.9
+              service_role: ntp
+              device_name: NTP-01
+        radius:
+          hosts:
+            radius-01:
+              ansible_host: 10.10.10.2
+              service_role: radius
+              device_name: RADIUS-01
+        zabbix:
+          hosts:
+            zabbix-01:
+              ansible_host: 10.10.10.4
+              service_role: zabbix
+              device_name: ZABBIX-01
+        web:
+          hosts:
+            web-01:
+              ansible_host: 10.10.10.8
+              service_role: web
+              device_name: WEB-01

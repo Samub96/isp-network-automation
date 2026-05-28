@@ -1,0 +1,49 @@
+ansible_connection: ssh
+ansible_user: ubuntu
+ansible_become: true
+ansible_become_method: sudo
+
+platform_timezone: America/Bogota
+platform_domain: lab.local
+
+servers_subnet: 10.10.10.0/24
+core_subnet: 10.10.20.0/24
+management_subnet: 10.10.30.0/24
+radius_mgmt_subnet: 10.10.40.0/24
+pppoe_clients_subnet: 100.64.0.0/18
+
+ntp_servers:
+  - 0.co.pool.ntp.org
+  - 1.south-america.pool.ntp.org
+  - 0.south-america.pool.ntp.org
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+
+dhcp_subnet_cidr: 10.10.30.0/24
+dhcp_range_start: 10.10.30.100
+dhcp_range_end: 10.10.30.200
+dhcp_router: 10.10.30.1
+dhcp_dns_servers:
+  - 10.10.10.7
+
+dns_listen_interfaces:
+  - lo
+  - eth0
+dns_forwarders:
+  - 1.1.1.1
+  - 8.8.8.8
+
+radius_clients:
+  - name: core
+    ip: 10.10.20.0/24
+  - name: management
+    ip: 10.10.30.0/24
+  - name: mimosa-admin
+    ip: 10.10.40.0/24
+
+zabbix_version: 7.0
+zabbix_timezone: America/Bogota
+zabbix_db_password: zabbix
+
+web_portal_title: ISP Captive Portal
+web_portal_welcome: Acceso controlado para clientes PPPoE
