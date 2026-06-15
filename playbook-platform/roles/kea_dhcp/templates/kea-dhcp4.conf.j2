@@ -12,6 +12,32 @@
       "name": "/var/lib/kea/kea-leases4.csv"
     },
     "subnet4": [
+{% if dhcp_scopes is defined and dhcp_scopes | length > 0 %}
+{% for scope in dhcp_scopes %}
+      {
+        "subnet": "{{ scope.subnet }}",
+        "pools": [
+          {
+            "pool": "{{ scope.range_start }} - {{ scope.range_end }}"
+          }
+        ],
+        "option-data": [
+          {
+            "name": "routers",
+            "data": "{{ scope.router }}"
+          },
+          {
+            "name": "domain-name-servers",
+            "data": "{{ dhcp_dns_servers | join(',') }}"
+          },
+          {
+            "name": "domain-name",
+            "data": "{{ platform_domain }}"
+          }
+        ]
+      }{% if not loop.last %},{% endif %}
+{% endfor %}
+{% else %}
       {
         "subnet": "{{ dhcp_subnet_cidr }}",
         "pools": [
@@ -34,6 +60,7 @@
           }
         ]
       }
+{% endif %}
     ]
   }
 }

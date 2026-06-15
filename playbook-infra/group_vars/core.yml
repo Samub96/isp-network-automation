@@ -1,5 +1,5 @@
 # Configuraci�n para routers Core
 ospf_enabled: yes
-ospf_router_id_base: "10.10.255"
+ospf_router_id_base: "10.255.0"
 bgp_asn: 65000
-loopback_network: "10.10.255"
+loopback_network: "10.255.0"

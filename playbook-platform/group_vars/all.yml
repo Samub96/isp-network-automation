@@ -26,6 +26,25 @@ dhcp_router: 10.10.30.1
 dhcp_dns_servers:
   - 10.10.10.7
 
+# Multi-scope DHCP pools aligned with the lab addressing plan.
+dhcp_scopes:
+  - subnet: 10.10.10.0/24
+    range_start: 10.10.10.100
+    range_end: 10.10.10.150
+    router: 10.10.10.1
+  - subnet: 10.10.20.0/24
+    range_start: 10.10.20.10
+    range_end: 10.10.20.200
+    router: 10.10.20.1
+  - subnet: 10.10.30.0/24
+    range_start: 10.10.30.10
+    range_end: 10.10.30.200
+    router: 10.10.30.1
+  - subnet: 10.10.40.0/24
+    range_start: 10.10.40.10
+    range_end: 10.10.40.200
+    router: 10.10.40.1
+
 dns_listen_interfaces:
   - lo
   - eth0
@@ -57,6 +76,14 @@ dns_local_records:
     ip: 10.10.30.1
   - name: sw-srv-1
     ip: 10.10.10.10
+  - name: sw-srv-2
+    ip: 10.10.10.11
+  - name: sw-srv-3
+    ip: 10.10.10.12
+  - name: sw-srv-4
+    ip: 10.10.10.13
+  - name: rtr-torre-1
+    ip: 10.10.20.5
   - name: olt-acc-1
     ip: 10.10.40.10
 

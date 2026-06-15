@@ -10,7 +10,7 @@ ansible_command_timeout: 60
 
 # Network prefixes used across the playbook.
 core_subnet: "10.10.0.0/16"
-loopback_subnet: "10.10.255.0/24"
+loopback_subnet: "10.255.0.0/16"
 management_subnet: "10.10.0.0/16"
 
 # NTP target for infrastructure devices.

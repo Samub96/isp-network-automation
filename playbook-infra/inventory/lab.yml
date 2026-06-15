@@ -40,6 +40,10 @@ all:
           ansible_host: 10.10.20.1
           device_name: "RTR-EDGE-1"
           role: "BNG / PPPoE Server"
+        rtr-torre-1:
+          ansible_host: 10.10.20.5
+          device_name: "RTR-TORRE-1"
+          role: "ABR Torre / Última Milla"
         cr-core-1:
           ansible_host: 10.10.20.2
           device_name: "CR-CORE-1"
@@ -59,6 +63,18 @@ all:
         sw-srv-1:
           ansible_host: 10.10.10.10
           device_name: "SW-SRV-1"
+          role: "Switch de Agregación"
+        sw-srv-2:
+          ansible_host: 10.10.10.11
+          device_name: "SW-SRV-2"
+          role: "Switch de Agregación"
+        sw-srv-3:
+          ansible_host: 10.10.10.12
+          device_name: "SW-SRV-3"
+          role: "Switch de Agregación"
+        sw-srv-4:
+          ansible_host: 10.10.10.13
+          device_name: "SW-SRV-4"
           role: "Switch de Agregación"
     olt:
       hosts:
